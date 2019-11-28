@@ -86,7 +86,7 @@ def identify(impath):
     with open(CLASS_FILE) as f:
         lines = f.readlines()
 
-    # Structure class data 
+    # Structure class data
     labels = {}
     print('Class data:')
     for l in lines:
@@ -102,10 +102,14 @@ def identify(impath):
     # Read image and find objects
     im = imread(impath, as_gray=True)
     obj_im = label(imgproc.imbinarize(im))
+    col_im = imgproc.color_labels(obj_im)
+    frame_coords, frame_labels = imgproc.frame_shapes(obj_im)
+    frames = [obj_im[fc[0]:fc[2], fc[1]:fc[3]] for fc in frame_coords]
+    filtered_objects = imgproc.label_filter(frames, frame_labels)
+    filtered_objects = np.array([imgproc.imlbl_binarize(resize(fo, IMG_SHAPE))
+                                 for fo in filtered_objects])
 
-    # TODO: Resize images before classifying
-
-    regprops = regionprops(obj_im)
+    regprops = [regionprops(fo)[0] for fo in filtered_objects]
     obj_count = {}
     for i, rp in enumerate(regprops):
         x = [rp[k] for k in IMG_PROPS]

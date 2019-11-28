@@ -21,6 +21,15 @@ def imbinarize(imarr, thres=0.5):
     return np.array(imarr < thres, dtype='uint8')
 
 
+def imlbl_binarize(imarr):
+    '''
+    Binarized version of a labeled image. The threshold will be
+    at max/2.
+    '''
+    thres = imarr.max()/2
+    return np.array(imarr >= thres, dtype='uint8')
+
+
 def color_labels(imgarr):
     '''
     '''
@@ -88,6 +97,7 @@ def readbin_resize(impath, dim, thres=0.5):
     rim[rim <= thres] = 0
 
     return rim.astype('uint8')
+
 
 def bin_resize(im, dim, thres=0.5):
     rim = resize(im, dim)
