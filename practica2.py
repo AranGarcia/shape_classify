@@ -9,6 +9,7 @@ import argparse
 import os
 import sys
 
+import matplotlib.pyplot as plt
 import numpy as np
 from scipy.spatial.distance import cdist
 from skimage.io import imread, imshow_collection, show
@@ -22,7 +23,7 @@ import imgproc
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 IMG_SHAPE = (100, 100)
 CLASS_FILE = 'training/classdata.txt'
-IMG_PROPS = ['area', 'perimeter']
+IMG_PROPS = ['eccentricity', 'area']
 
 
 def _make_training_dir():
@@ -33,6 +34,15 @@ def _make_training_dir():
 def _classify(imattr, xclass):
     sim = cdist([imattr], xclass)
     return np.argmin(sim)
+
+
+def _plot_train(x, y):
+    for i in range(len(x)):
+        plt.scatter(x[i][0], x[i][1])
+        plt.text(x[i][0], x[i][1], y[i])
+    plt.xlabel(IMG_PROPS[0])
+    plt.ylabel(IMG_PROPS[1])
+    plt.show()
 
 
 def train(traindir):
@@ -70,16 +80,17 @@ def train(traindir):
     le = LabelEncoder()
     le.fit(y)
     _make_training_dir()
+    X_t = np.array([X[y == cl].mean(axis=0) for cl in le.classes_])
     with open(CLASS_FILE, 'w') as f:
-        for cl in le.classes_:
-            class_X = X[y == cl].mean(axis=0)
-            f.write(f'{cl}:{",".join(map(str, class_X))}\n')
+        for i, xt in enumerate(X_t):
+            f.write(f'{le.classes_[i]}:{",".join(map(str, xt))}\n')
 
     print('\nClass data found:')
     for cl in le.classes_:
         print(cl, X[y == cl].mean(axis=0))
 
     print('Class data written to', CLASS_FILE)
+    _plot_train(X_t, le.classes_)
 
 
 def identify(impath):
@@ -121,7 +132,9 @@ def identify(impath):
         else:
             obj_count[y_hat] += 1
 
-    print(obj_count)
+    print('Objects found')
+    for k, v in obj_count.items():
+        print(k, ': ', v, sep='')
 
 
 if __name__ == "__main__":
